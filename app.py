@@ -4,10 +4,21 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import re
 
-# -- Load Genius API token from Streamlit secrets
-GENIUS_API_TOKEN = st.secrets["GENIUS_API_TOKEN"]
+# -- Streamlit Config
+st.set_page_config(page_title="🎤 Taylor Swift Lyrics Visualizer", layout="centered")
+st.title("🎶 Sing with Streamlit: Taylor Swift Lyrics Visualizer")
+st.markdown("Enter a **Taylor Swift** song title to get the lyrics and a word cloud.")
 
-# -- Initialize Genius
+# -- Check if Genius API token is loaded
+try:
+    GENIUS_API_TOKEN = st.secrets["GENIUS_API_TOKEN"]
+    st.success("✅ Genius API token loaded successfully.")
+    st.caption(f"🔑 Token begins with: `{GENIUS_API_TOKEN[:4]}...{GENIUS_API_TOKEN[-4:]}`")
+except KeyError:
+    st.error("❌ Genius API token not found in st.secrets. Please add it in your deployment settings.")
+    st.stop()
+
+# -- Initialize Genius API
 genius = lyricsgenius.Genius(
     GENIUS_API_TOKEN,
     skip_non_songs=True,
@@ -21,11 +32,7 @@ def clean_lyrics(lyrics):
     lines = [line.strip() for line in lyrics.splitlines() if line.strip()]
     return "\n".join(lines)
 
-# -- Streamlit UI
-st.set_page_config(page_title="🎤 Taylor Swift Lyrics Visualizer", layout="centered")
-st.title("🎶 Sing with Streamlit: Taylor Swift Lyrics Visualizer")
-st.markdown("Enter a **Taylor Swift** song title to get the lyrics and a word cloud.")
-
+# -- Input field
 song_title = st.text_input("🎵 Song Title", placeholder="e.g., Love Story")
 
 if song_title:
@@ -47,4 +54,5 @@ if song_title:
             else:
                 st.error("No lyrics found for this song.")
         except Exception as e:
-            st.error(f"An error occurred: {e}")
+            st.error("❌ An error occurred while fetching lyrics.")
+            st.exception(e)
