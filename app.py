@@ -10,9 +10,11 @@ def get_genius_client():
     try:
         token = st.secrets["GENIUS_API_TOKEN"]
         session = requests.Session()
-        session.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-        }
+        session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Accept": "application/json"
+        })
 
         genius = lyricsgenius.Genius(
             token,
@@ -23,7 +25,7 @@ def get_genius_client():
             retries=3,
             verbose=False
         )
-        genius._session = session
+        genius._session = session  # Override internal session with custom headers
         return genius
     except KeyError:
         st.error("🚫 Genius API token not found in Streamlit secrets.")
@@ -63,4 +65,7 @@ if song_title:
                 else:
                     st.warning("🤷 Could not fetch lyrics. Try another song or check spelling.")
             except Exception as e:
-                st.error(f"⚠️ An error occurred while fetching lyrics: {e}")
+                if "403" in str(e):
+                    st.error("🚫 Access denied (403 Forbidden) — possible API token issue or rate limiting.")
+                else:
+                    st.error(f"⚠️ An error occurred while fetching lyrics: {e}")
