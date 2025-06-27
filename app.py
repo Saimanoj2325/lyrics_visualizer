@@ -9,13 +9,7 @@ import re
 def get_genius_client():
     try:
         token = st.secrets["GENIUS_API_TOKEN"]
-        session = requests.Session()
-        session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                          "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Accept": "application/json"
-        })
-
+        
         genius = lyricsgenius.Genius(
             token,
             skip_non_songs=True,
@@ -25,7 +19,14 @@ def get_genius_client():
             retries=3,
             verbose=False
         )
-        genius._session = session  # Override internal session with custom headers
+        
+        # UPDATE genius session headers (very important)
+        genius._session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Accept": "application/json"
+        })
+
         return genius
     except KeyError:
         st.error("🚫 Genius API token not found in Streamlit secrets.")
